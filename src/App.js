@@ -1,16 +1,26 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import InfiniteScroll from "react-infinite-scroll-component";
 import "./App.css";
 
+const accessKey = process.env.REACT_APP_UNSPLASH_ACCESS_KEY;
+
 export default function App() {
+  const [images, setImages] = useState([]);
+
   useEffect(() => {
-    fetch(
-      "https://api.unsplash.com/photos/?client_id=nXzPETY22in6xthGFaCkrVEYzDC9ArM_u1ascjZ_nOw"
-    )
+    console.log(accessKey);
+    fetch(`https://api.unsplash.com/photos/?client_id=${accessKey}`)
       .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-      });
+      .then(setImages);
   }, []);
+
+  if (!accessKey) {
+    return (
+      <a href='https://unsplash.com/developers' className='error'>
+        Required: Get Your Unsplash API Key First
+      </a>
+    );
+  }
 
   return (
     <div className='app'>
@@ -20,14 +30,20 @@ export default function App() {
         <input type='text' placeholder='Search Unsplash...' />
         <button>Search</button>
       </form>
-
-      <div className='image-grid'>
-        {[...Array(100)].map((_, index) => (
-          <div className='image' key={index}>
-            <img src='https://placekitten.com/g/1920/1080' alt='Sample' />
-          </div>
-        ))}
-      </div>
+      <InfiniteScroll
+        dataLength={images.length}
+        next={() => setPage((page) => page + 1)}
+        hasMore={true}
+        loader={<h4>Loading...</h4>}
+      >
+        <div className='image-grid'>
+          {images.map((image, index) => (
+            <div className='image' key={index}>
+              <img src={image.urls.regular} alt={image.alt_description} />
+            </div>
+          ))}
+        </div>
+      </InfiniteScroll>
     </div>
   );
 }
